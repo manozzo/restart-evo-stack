@@ -1,0 +1,114 @@
+{
+  "name": "Restart Evolution Stack",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        680,
+        0
+      ],
+      "id": "5c374127-0054-4504-bbbb-f200c86550aa",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { code, stdout, stderr } = items[0].json;\n\nreturn [{\n  json: {\n    restarted: code === 0,\n    output: stdout.trim().split('\\n'),  // turn it into an array of lines\n    error: stderr || null,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        0
+      ],
+      "id": "77fb8d42-fad6-4b08-9d13-42d027f21e03",
+      "name": "Format Restart Result"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "restart-evo-service",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        20,
+        0
+      ],
+      "id": "b525c5e4-de32-4f38-a0d5-bbb5a3c7b2bb",
+      "name": "Webhook",
+      "webhookId": "d0bd290c-94f9-4886-98d6-bc78b162e8ea"
+    },
+    {
+      "parameters": {
+        "command": "docker service update --force evolution_evolution"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "id": "612a6002-efff-424c-8cc0-df0475604d6b",
+      "name": "Restart Evolution Service",
+      "credentials": {
+        "sshPassword": {
+          "id": "WUv7HI9VEKaJA7iz",
+          "name": "SSH Password account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Format Restart Result": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Restart Evolution Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restart Evolution Service": {
+      "main": [
+        [
+          {
+            "node": "Format Restart Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8d57011c-4e0e-4850-98ff-e0a6a7c9066d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "41aaf3f91e888c0c1e6d25fd76769b35b1705a1be9d697e35510c0c3f0062fa3"
+  },
+  "id": "MXaow19kQaEebQhC",
+  "tags": []
+}
